@@ -8,6 +8,9 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.BlazeEntity;
 import net.minecraft.entity.mob.BreezeEntity;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.Difficulty;
 
 import java.util.Random;
@@ -22,7 +25,7 @@ public class SGBreeze implements ModInitializer {
 
 	public static final Random r = new Random();
 
-	public static final int spawnRatio = 50;
+	public static final int spawnRatio = 85;
 
 	@Override
 	public void onInitialize() {
@@ -33,13 +36,35 @@ public class SGBreeze implements ModInitializer {
 			if (!entity.getType().equals(EntityType.BLAZE)) {
 				return;
 			}
+			BlazeEntity blaze = (BlazeEntity) entity;
+			NbtElement check = ((IEntityDataSaver)blaze).getPersistentData().get("breeze_spawn");
+			if(check != null){
+				return;
+			}
+			((IEntityDataSaver)blaze).getPersistentData().putString("breeze_spawn", "checked");
 			boolean willSpawn = r.nextInt(100) <= spawnRatio;
 			if (!willSpawn) {
 				return;
 			}
-			BlazeEntity blaze = (BlazeEntity) entity;
+			int xOffset = 1 + r.nextInt(2);
+			int zOffset = 1 + r.nextInt(2);
+			xOffset = r.nextBoolean() ? xOffset : -xOffset;
+			zOffset = r.nextBoolean() ? zOffset : -zOffset;
+			BlockPos pos = blaze.getBlockPos();
+			BlockPos spawnPos = new BlockPos(pos.getX() + xOffset, pos.getY(), pos.getZ() + zOffset);
+			BlockPos floor = spawnPos.offset(Direction.DOWN);
+			BlockPos air = spawnPos.offset(Direction.UP, 1);
+			if(!blaze.getWorld().getBlockState(floor).isOpaqueFullCube()){
+				return;
+			};
+			if(!blaze.getWorld().getBlockState(spawnPos).isAir()){
+				return;
+			};
+			if(!blaze.getWorld().getBlockState(air).isAir()){
+				return;
+			};
 			BreezeEntity breeze = EntityType.BREEZE.create(serverLevel, SpawnReason.NATURAL);
-			breeze.setPos(blaze.getPos().getX(), blaze.getPos().getY(), blaze.getPos().getZ());
+			breeze.setPos(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
 			serverLevel.spawnNewEntityAndPassengers(breeze);
 		});
 	}
