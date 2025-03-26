@@ -2,8 +2,6 @@ package com.sg.breeze;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.mob.BlazeEntity;
@@ -37,11 +35,11 @@ public class SGBreeze implements ModInitializer {
 				return;
 			}
 			BlazeEntity blaze = (BlazeEntity) entity;
-			NbtElement check = ((IEntityDataSaver)blaze).getPersistentData().get("breeze_spawn");
+			NbtElement check = ((IEntityDataSaver)blaze).getSGBreezePersistentData().get("breeze_spawn");
 			if(check != null){
 				return;
 			}
-			((IEntityDataSaver)blaze).getPersistentData().putString("breeze_spawn", "checked");
+			((IEntityDataSaver)blaze).getSGBreezePersistentData().putString("breeze_spawn", "checked");
 			boolean willSpawn = r.nextInt(100) <= spawnRatio;
 			if (!willSpawn) {
 				return;
